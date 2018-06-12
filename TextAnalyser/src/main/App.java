@@ -13,12 +13,15 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
@@ -34,10 +37,14 @@ import javafx.stage.Stage;
  */
 public class App extends Application {
 	private Button btnFileChooser;
+	private TextField ref;
 	private Button btnRun;
+	
+	private String folderPath;
+	private static TextArea textArea = new TextArea();
 
 	@Override
-	public void start(Stage primaryStage) throws Exception {
+	public void start(Stage primaryStage) {
 
 		BorderPane pane = new BorderPane();
 		pane.setStyle("-fx-background-color: #008774;");
@@ -46,6 +53,10 @@ public class App extends Application {
 		hbox.setPadding(new Insets(15, 12, 15, 12));
 		hbox.setSpacing(10);
 
+		
+		Label label2 = new Label("");
+		label2.setTextFill(Color.web("#FFFFFF"));		
+		
 		btnFileChooser = new Button("Click to Choose a Folder");
 		btnFileChooser.setPrefSize(150, 20);
 		btnFileChooser.setOnAction(new EventHandler<ActionEvent>() {
@@ -54,10 +65,8 @@ public class App extends Application {
 				DirectoryChooser directoryChooser = new DirectoryChooser();
 				File selectedDirectory = directoryChooser.showDialog(primaryStage);
 				if (selectedDirectory != null) {
-					String folderPath = selectedDirectory.getAbsolutePath();
-					String ref = ("Pair Programming Illuminated");
-					String[] splited = ref.split("\\s+");
-					getArticlesArticle(folderPath, ref, splited);
+					folderPath = selectedDirectory.getAbsolutePath();
+					label2.setText(folderPath);
 				} else {
 				}
 			}
@@ -66,29 +75,54 @@ public class App extends Application {
 		Label label = new Label("Type a String");
 		label.setTextFill(Color.web("#FFFFFF"));
 
-		TextField notification = new TextField();
+		ref = new TextField();
 
 		btnRun = new Button("Run!");
 		btnRun.setPrefSize(50, 20);
+		btnRun.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				if (ref != null) {
+					String[] splited = ref.getText().split("\\s+");
+					getArticles(folderPath, ref.getText(), splited);
+				} else {
+					//Nao vou fazer agora, cala a boca!
+				}
+			}
+		});
+		
+		hbox.getChildren().addAll(btnFileChooser, label, ref, btnRun);
 
-		hbox.getChildren().addAll(btnFileChooser, label, notification, btnRun);
-
+//		GridPane gp = new GridPane();
+//		gp.setMinSize(200, 100);
+//		gp.setPadding(new Insets(10, 10, 10, 10));
+//		gp.setHgap(5);
+//		gp.setVgap(5);
+//		gp.setAlignment(Pos.CENTER);
+//		gp.setGridLinesVisible(true);
+//		
+//		gp.add(textArea, 0, 0);
+		
+		textArea.setEditable(false);
+		
+		HBox hbox2 = new HBox();
+		hbox2.setPadding(new Insets(15, 12, 15, 12));
+		hbox2.setSpacing(10);
+		hbox2.getChildren().addAll(label2);
+		
+		HBox hbox3 = new HBox();
+		hbox3.setPadding(new Insets(15, 12, 15, 12));
+		hbox3.setSpacing(10);
+		hbox3.getChildren().add(textArea);
+		
 		pane.setTop(hbox);
+		pane.setCenter(hbox2);
+		pane.setBottom(hbox3);
 
 		Scene scene = new Scene(pane, 500, 500);
 		primaryStage.setScene(scene);
 		primaryStage.setTitle("Mapas com JavaFX");
 		primaryStage.show();
-
-		String folderPath = ("C:/Users/Israel/Desktop/folder");
-		String ref = ("Pair Programming Illuminated");
-		String[] splited = ref.split("\\s+");
-		// For checking if the splited version of the reference is correct
-		// for(int i=0; i<splited.length;i++) {
-		// System.out.println(splited[i]);
-		// }
-		// findReferencesByArticle(folderPath, ref, splited);
-
 	}
 
 	// ##########################################################################################
@@ -104,7 +138,7 @@ public class App extends Application {
 	 * @param ref
 	 * @param splited
 	 */
-	public static void getArticlesArticle(String folderPath, String ref, String[] splited) {
+	public static void getArticles(String folderPath, String ref, String[] splited) {
 		System.out.println(folderPath);
 		try (Stream<Path> paths = Files.walk(Paths.get(folderPath))) {
 			paths.filter(Files::isRegularFile).forEach(p -> streamService(p, ref, splited));
@@ -125,7 +159,8 @@ public class App extends Application {
 	private static void streamService(Path path, String ref, String[] splited) {
 		boolean hasRef = false;
 		String format = "%-23s%s%n";
-
+		StringBuilder builder = new StringBuilder();
+		
 		try (Scanner sc = new Scanner(Files.newBufferedReader(path, Charset.forName("ISO-8859-1")))) {
 			sc.useDelimiter("(,|\\s|\\$)+"); // separadores
 			while (sc.hasNext()) {
@@ -137,6 +172,7 @@ public class App extends Application {
 					}
 					if (hasRef) {
 						nOccurences++;
+						textArea.setText(textArea.getText() + nOccurences + " - #CONTAINS! " + path + "\n"); 
 						System.out.printf(format, nOccurences + " - #CONTAINS!", path);
 						return;
 					}
@@ -144,6 +180,7 @@ public class App extends Application {
 			}
 			if (!hasRef) {
 				nOccurences++;
+				textArea.setText(textArea.getText() + nOccurences + " - DO NOT Contains! " + path + "\n");
 				System.out.printf(format, nOccurences + " - DO NOT Contains!", path);
 			}
 		} catch (IOException e) {
