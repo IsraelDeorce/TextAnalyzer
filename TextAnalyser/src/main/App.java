@@ -11,21 +11,16 @@ import java.util.stream.Stream;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 /**
@@ -121,7 +116,7 @@ public class App extends Application {
 
 		Scene scene = new Scene(pane, 500, 500);
 		primaryStage.setScene(scene);
-		primaryStage.setTitle("Mapas com JavaFX");
+		primaryStage.setTitle("TextAnalyser - by Israel Deorce - 11-06-2018");
 		primaryStage.show();
 	}
 
@@ -158,9 +153,7 @@ public class App extends Application {
 	 */
 	private static void streamService(Path path, String ref, String[] splited) {
 		boolean hasRef = false;
-		String format = "%-23s%s%n";
-		StringBuilder builder = new StringBuilder();
-		
+		String format = "%-23s%s%n";		
 		try (Scanner sc = new Scanner(Files.newBufferedReader(path, Charset.forName("ISO-8859-1")))) {
 			sc.useDelimiter("(,|\\s|\\$)+"); // separadores
 			while (sc.hasNext()) {
